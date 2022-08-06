@@ -2,7 +2,7 @@ const qwerty = document.getElementById('qwerty');
 const phrase = document.getElementById('phrase');
 const startGameBtn = document.querySelector('.btn__reset');
 const ul = document.querySelector('ul');
-const youWin = document.querySelector('ul');
+const h2 = document.createElement('h2');
 let missed = 0;	
 const overlay = document.getElementById('overlay');
 
@@ -24,64 +24,58 @@ const phrases = [
 
 
 // Return a random phrase from an array\
-function getRandomPhraseAsArray (arr) {
+function getRandomPhraseAsArray(arr) {
 	const randomNumber = Math.floor(Math.random() * phrases.length);
-	let phrase = arr[randomNumber];
-	return phrase;
+	const randomPhrase = phrases[randomNumber];
+	const splitPhrase = randomPhrase.split('');
+	return splitPhrase;
 }
 
+const phraseArray = getRandomPhraseAsArray(phrases);
+addPhraseToDisplay(phraseArray);
 
 
-const randomPhrase = getRandomPhraseAsArray(phrases);
+// Add letters of string to the display
 function addPhraseToDisplay(arr) {
-	for (let i = 0; i < randomPhrase.length; i++){
-		let text = arr[i];
-		const li = document.createElement('li');
-		ul.appendChild(li);
-		li.className = 'letter';
-		li.textContent = text;
-		if (randomPhrase[i] === " ") {
-			li.className = 'space';
-		} else {
-			li.className = 'letter';
-		}
+	for(let i = 0; i < phraseArray.length; i++) {
+		const li = phraseArray[i];
+		const liPhrase = document.createElement('li');
+		liPhrase.textContent = li;
+		const ul = document.querySelector('#phrase ul');
+		ul.appendChild(liPhrase);
 
+		if (li !== ' ') {
+			liPhrase.classList.add('letter');
+		} else if (li === ' ') {
+			liPhrase.classList.add('space');
+		}
 	}
 }
-
-// Adds the letters of a string to the display
-addPhraseToDisplay(randomPhrase);
-
 
 // Check if a letter is in the phrase
 function checkLetter(selectLetter) {
-	const checkLetter = document.querySelectorAll('li');
-	let match = null;
-
-	for (let i = 0; i < checkLetter.length; i++) {
-		const letterCheck = checkLetter[i];
-
-		if (selectLetter === letterCheck.textContent) {
-			checkLetter[i].className = 'show letter';
-			match = letterCheck.textContent;
+	const correctLetter = phraseArray.includes(selectLetter);
+	
+	if (correctLetter === true) {
+		for (let i = 0; i < phraseArray.length; i++)
+		if (phraseArray[i] === selectLetter) {
+			document.querySelectorAll('li')[i].classList.add('show');
 		}
-
-	}
-	return match;
+	} else {
+		const attempts = document.querySelectorAll('img');
+		attempts[missed].src = "images/lostHeart.png";
+		missed++;
+	} 
 }
+
 // Listen for the onscreen keyboard to be clicked
 qwerty.addEventListener('click', (e) => {
-	e.preventDefault();
 	if (e.target.tagName === 'BUTTON' && e.target.className != 'chosen') {
 		const button = e.target;
-		e.target.className = 'chosen';
-		e.target.setAttribute('disabled', '');
-		const match = checkLetter(button);
-		if (match === null) {
-			const tries = document.querySelectorAll('img');
-			tries[missed].setAttribute('src', 'images/lostHeart.png');
-			missed++;
-		}
+		button.disabled = true;
+		button.className = 'chosen';
+		const letterCheck = e.target.textContent;
+		const letterFound = checkLetter(letterCheck);
 	}
 	checkWin();
 });
@@ -90,19 +84,21 @@ qwerty.addEventListener('click', (e) => {
 function checkWin() {
 	const letters = document.querySelectorAll('.letter');
 	const shows = document.querySelectorAll('.show');
-	if (letters.length === shows.length) {
+	if (shows.length === letters.length) {
 		overlay.style.display = 'flex';
 		overlay.className = 'win';
-		youWin.textContent = "You Win!";
+		document.querySelector('h2').textContent = "You Win!";
+		overlay.appendChild(h2);
 		startGameBtn.textContent = 'Restart?';
 	} else if (missed > 4) {
 		overlay.style.display = 'flex';
 		overlay.className = 'lose';
-		youWin.textContent = "You Lose!";
+		overlay.appendChild(h2);
+		h2.textContent = "You Lose!";
 		startGameBtn.textContent = 'Try Again?';
 	}
-	resetGame();
-}
+	resetGame(); 
+} 
 
 // Reset Game
 function resetGame() {
